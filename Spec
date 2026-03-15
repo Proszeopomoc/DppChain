@@ -1,0 +1,143 @@
+DPPchain Specification v0.1
+Working draft. Open for discussion.
+What this is
+DPPchain is a protocol layer for AI agents and LLMs.
+You add it to any agent or language model. From that point, when a user asks about a product, the agent does not search the web, does not rank by popularity, does not factor in advertising. It queries verified product data sources and returns what the data says.
+Think of it as a system prompt with a data pipeline attached. Except the data has legal accountability behind it.
+The problem it solves
+A user asks an AI assistant: "What is the best insulation material for a 200mm external wall?"
+Without DPPchain, the agent searches the web. It finds manufacturer pages, sponsored content, SEO-optimized articles, and affiliate blogs. The answer reflects who invested most in visibility, not which product actually performs best.
+With DPPchain, the agent queries technical datasheets and certification registries. It returns materials that meet the thermal resistance requirement, ranked by verified lambda values, with sources cited.
+Same question. Completely different answer. Based on facts instead of marketing.
+Core concept
+DPPchain is a retrieval and verification layer that sits between the user's question and the agent's answer.
+User question
+     ↓
+DPPchain layer
+     ↓ (query)
+Verified data sources (DPP registries, certification databases, technical standards)
+     ↓ (structured data)
+DPPchain layer
+     ↓ (verified, cited response)
+Agent answer
+The agent never touches unverified web content for product decisions. It only receives structured data that has been pulled from accountable sources.
+Data sources
+DPPchain operates on data that carries legal accountability for its accuracy.
+Priority sources:
+Digital Product Passports — EU DPP registries as they come online by sector. Textiles from 2026, electronics following. Contains: composition, origin, sustainability metrics, technical parameters, supply chain data.
+Certification databases — CE marking registries, notified body databases, ISO certification records. Contains: compliance status, test results, valid dates, issuing body.
+Chemical registries — ECHA (European Chemicals Agency) for substance composition. Contains: ingredient lists, hazardous substance flags, REACH compliance.
+Technical standards bodies — EN, ISO, IEC published specifications. Contains: performance benchmarks, classification systems, test methodologies.
+Official product registries — sector-specific public databases where product registration is legally required.
+Sources that are explicitly excluded: manufacturer marketing pages, review platforms, price comparison sites, social media, SEO content, affiliate content, any source without legal accountability for accuracy.
+How it integrates
+DPPchain is designed to be added to any agent or LLM as a module. Three integration modes:
+System prompt injection
+The simplest integration. DPPchain provides a structured system prompt block that instructs the LLM to route product queries through the verification layer. Suitable for any LLM that accepts system prompts.
+Tool / function call
+DPPchain exposes a set of tools that an agent can call. When the agent identifies a product query, it calls the appropriate DPPchain tool, receives structured verified data, and uses that data to formulate its response. Compatible with any agent framework that supports tool use.
+API endpoint
+DPPchain runs as a local or hosted service. The agent sends a structured product query, receives a verified data response with full source citations. Language and framework agnostic.
+All three modes produce the same output: structured product data with source citations, ready for the agent to use in its response.
+Query structure
+A DPPchain query contains:
+{
+  "product_type": "string — what category of product",
+  "requirements": "object — user's specified needs and constraints",
+  "preferences": "object — optional user preference profile",
+  "markets": "array — relevant regulatory markets (default: EU)"
+}
+A DPPchain response contains:
+{
+  "results": [
+    {
+      "product_id": "string",
+      "product_name": "string",
+      "match_score": "float — how well it meets requirements",
+      "verified_attributes": "object — data points from verified sources",
+      "sources": [
+        {
+          "attribute": "string — which data point",
+          "source_type": "DPP | certification | registry | standard",
+          "source_id": "string — specific registry or document reference",
+          "verified_date": "ISO date"
+        }
+      ],
+      "flags": "array — any inconsistencies found across sources"
+    }
+  ],
+  "data_completeness": "float — what % of requirements had verified data available",
+  "missing_data": "array — requirements that could not be verified"
+}
+The response never omits the sources. The agent must present them to the user. Transparency is structural, not optional.
+Preference profiles
+Users can define a preference profile that persists across queries.
+{
+  "priorities": ["sustainability", "price", "technical_performance"],
+  "exclusions": ["specific materials", "countries of origin", "certifications to avoid"],
+  "requirements": ["minimum certifications", "maximum price range"],
+  "context": ["use case", "regulatory environment", "technical constraints"]
+}
+Preference profiles are stored locally by the implementing agent. DPPchain does not store, transmit, or process preference profiles on any central server. The personalization layer belongs to the user.
+User-defined search parameters
+Beyond preference profiles, users can define precise search parameters for any query. DPPchain treats these as hard filters, not suggestions.
+Location and availability
+The user defines where they are and how they want to receive the product. DPPchain filters results to what is actually available in that location — not what is theoretically purchasable from the other side of the world with a three-week delivery time.
+{
+  "location": "country, region, or postal code",
+  "availability": "in_stock_local | online_delivery | pickup_only",
+  "max_delivery_days": "integer",
+  "preferred_sellers": "array of seller types or specific sellers"
+}
+Price
+Hard price limits are respected absolutely. A product above the user's stated maximum does not appear in results regardless of how well it matches other parameters.
+Composition filters
+The user can specify exactly what a product must contain and must not contain. This is verified against DPP composition data and chemical registries — not against marketing claims.
+Examples:
+Organic food: certified organic origin required, specific pesticide residues excluded
+Supplements: minimum verified content of substance X, maximum verified content of substance Y, no listed allergens
+Cleaning products: specific active ingredients required or excluded, concentration ranges
+The marketing layer is invisible to DPPchain
+A product called "Revolutionary Multi-Surface Miracle Cleaner" that contains acetic acid at 5% concentration is returned as: acetic acid solution, 5%. Nothing more.
+A supplement marketed as "Ultra Mega Absorption Complex" that contains 200mg vitamin C is returned as: ascorbic acid, 200mg per serving.
+DPPchain reads composition data. It does not read product names, taglines, or marketing descriptions. The name a manufacturer gives to a product has no bearing on how DPPchain classifies or returns it.
+This makes certain common practices structurally impossible:
+Claiming natural origin for synthetic ingredients
+Implying concentration or efficacy not supported by composition data
+Using proprietary blend names to obscure actual ingredients
+Marketing ordinary substances under premium product identities
+The user who searches for vinegar gets vinegar. Not a product whose marketing materials mention vinegar somewhere in the copy.
+Plain language queries and intent translation
+The user does not need to know the technical name of what they are looking for.
+DPPchain translates plain language queries into verified product parameters before querying data sources. The user describes what they want to do or what they know — DPPchain determines what that actually means in terms of composition, classification, or technical specification.
+Examples:
+"Pizza flour" → wheat flour, type 00, protein content minimum 11-12%, suitable for long fermentation. Returns products that match this specification regardless of what they are called on the packaging.
+"Something to degrease my kitchen" → active degreasing agent required (sodium hydroxide, potassium hydroxide, citric acid, or similar), verified concentration range. Returns products with confirmed degreasing capability, not products whose marketing copy mentions degreasing.
+"High vitamin C supplement without sugar" → ascorbic acid minimum Xmg per serving, sucrose and glucose absent from composition data. Returns products that match — including ones the user has never heard of and ones marketed under completely different names.
+"Organic cotton t-shirt" → cotton origin certified organic per EU DPP data, no synthetic fiber content above threshold, dyeing process within certified parameters. Returns what actually meets the standard, not what claims to meet it.
+This means a user who does not understand product categories, ingredient names, or technical classifications can still get an honest answer. The knowledge gap is bridged by DPPchain, not exploited by marketing.
+It also means that branded products which are simply common substances under a premium name are returned for what they are. The user can then decide whether the brand premium is worth it — with full information, not with the information gap the brand depends on.
+Ranking logic
+Results are ranked by a single criterion: fit to user requirements.
+The ranking algorithm is open and auditable. No weighting factor can be purchased or influenced externally. A product with a higher advertising budget and a lower technical fit will always rank below a product with no advertising budget and a higher technical fit.
+This is enforced by architecture. The ranking function has no input channel for commercial relationships.
+What DPPchain does not do
+It does not crawl the web.
+It does not read reviews.
+It does not factor in popularity, search ranking, or social proof.
+It does not accept commercial relationships that influence results.
+It does not store user queries or preference profiles centrally.
+It does not return a result when verified data is unavailable — it returns a transparent statement that data is missing, rather than falling back to unverified sources.
+Data availability and honest gaps
+DPP rollout is gradual. Many product categories will not have verified data available immediately.
+DPPchain handles this explicitly. When a query cannot be answered from verified sources, the response says so clearly: which data points are missing, which sources were checked, and what the user can do to find the information another way.
+Returning an unverified answer labeled as verified is a protocol violation.
+Versioning and governance
+The protocol specification is versioned. Breaking changes require a major version increment.
+Governance is open. Protocol changes are proposed as issues, discussed publicly, and merged by consensus. No single entity controls the specification.
+Implementations that deviate from the specification must clearly state which version they implement and where they diverge. Claiming DPPchain compliance while violating core principles — particularly zero monetization of visibility and verified sources only — is explicitly prohibited.
+Implementation status
+v0.1 — Specification draft. No reference implementation yet.
+Next milestone: reference implementation for EU textile DPP queries, targeting 2026 DPP rollout.
+Contributors welcome. See README for how to participate.
+DPPchain specification is released under MIT License.
