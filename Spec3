@@ -1,0 +1,122 @@
+DPPchain Specification v0.1 — Technical Foundation
+We stand for free, unmanipulated data.
+This document covers the technical standards DPPchain builds on. For architecture and principles see SPEC.md. For real-world examples see SPEC2.md.
+The format already exists
+DPPchain does not invent a new data format. The format already exists, is open, and is being standardized at the international level. DPPchain builds on what is already there.
+Three open standards form the foundation:
+JSON-LD
+JSON-LD (JSON for Linked Data) is the data format DPP records are built on.
+It is human-readable and machine-readable simultaneously. A developer can read it directly like source code. An AI agent can parse it instantly. A regulator can audit it without special tools.
+This is exactly the property described in SPEC.md — the system works without AI, AI only makes it faster.
+A DPP record in JSON-LD looks like this:
+{
+  "type": ["DigitalProductPassport", "VerifiableCredential"],
+  "id": "https://example-company.com/credentials/2a423366",
+  "issuer": {
+    "id": "did:web:identifiers.example-company.com:12345",
+    "name": "Example Company"
+  },
+  "validFrom": "2025-06-15T12:00:00Z",
+  "validUntil": "2035-03-15T12:00:00Z",
+  "credentialSubject": {
+    "type": ["ProductPassport"],
+    "product": {
+      "id": "https://example.com/id/9520123456788",
+      "registeredId": "9520123456788",
+      "countryOfProduction": "PL",
+      "productionDate": "2025-04-25",
+      "characteristics": {}
+    }
+  }
+}
+Every field is typed. Every value is verifiable. Every record has an issuer with legal identity behind it.
+GS1 Digital Link
+GS1 Digital Link is the identifier system. Think of it as ISBN for books — but for every physical product in the world.
+Every product gets a unique identifier. That identifier resolves to a URL. That URL returns the JSON-LD record with full product data.
+Scan a QR code on a product — get the full DPP record. No app required. No proprietary system. Standard HTTP request.
+QR code on product
+     ↓
+GS1 Digital Link identifier
+     ↓
+HTTP GET request
+     ↓
+JSON-LD DPP record with full verified data
+This is the access layer. DPPchain queries it exactly like a browser queries a website — except instead of HTML for humans it gets JSON-LD for machines.
+UNTP — UN Transparency Protocol
+UNTP is the international specification for Digital Product Passports developed under the UN Centre for Trade Facilitation and Electronic Business (UN/CEFACT).
+It defines the full schema — what fields a DPP must contain, how conformity claims are structured, how supply chain events are recorded, how credentials are verified.
+Version 0.6.0 is available now for pilot testing. Version 1.0 stable release is due mid-2025.
+The schema is public and available at:
+https://uncefact.github.io/spec-untp/docs/specification/DigitalProductPassport/
+DPPchain implements UNTP as its primary data schema. Any DPP issued according to UNTP is readable by DPPchain without additional translation.
+How DPPchain sits on top of these standards
+User (plain language query)
+          ↓
+DPPchain AI layer
+(translates intent to structured query parameters)
+          ↓
+DPPchain protocol layer
+(constructs UNTP-compliant query)
+          ↓
+GS1 Digital Link registry
+(resolves product identifier to data endpoint)
+          ↓
+JSON-LD DPP record
+(verified data with legal accountability)
+          ↓
+DPPchain verification layer
+(cross-checks sources, flags inconsistencies)
+          ↓
+DPPchain AI layer
+(translates structured result to plain language)
+          ↓
+User (verified answer with full audit trail)
+The AI layer exists only at the top and bottom — translating human language to machine parameters and back. Everything in the middle is open standards that work without AI.
+A developer who wants to query DPP data directly can do so without DPPchain and without AI. DPPchain makes it accessible to everyone else.
+Regulatory timeline
+DPP is not a future concept. The legal framework is in place and implementation is underway.
+July 2024 — ESPR (Ecodesign for Sustainable Products Regulation EU 2024/1781) entered into force. Legal foundation established for DPP across all product categories.
+February 2027 — Battery passport mandatory. First product category with full DPP requirement. Over 100 data attributes including material composition, carbon footprint by lifecycle stage, recycled content, and performance data.
+2027-2028 — Textiles, furniture, iron, steel, aluminium, energy-related products. First delegated acts defining specific DPP requirements for these categories expected from Q4 2025.
+2030 — Construction products mandatory under CPR (Construction Products Regulation EU 2024/1305).
+Mid-term review 2028 — Potential expansion to chemicals, footwear, and additional categories.
+What this means for DPPchain development
+DPPchain does not need to wait for DPP to be mandatory. The UNTP schema is available now. Pilot implementations exist now. The data format is stable enough to build on.
+The battery category provides the first live implementation target. Battery DPP data will be mandatory from February 2027 — but companies are building systems now. DPPchain can implement battery passport queries in 2025-2026 against pilot data, before mandatory rollout.
+Textiles follow. Then construction. Each new mandatory category brings more verified data into the system automatically — without DPPchain needing to do anything except support the standard it already implements.
+This is the compounding effect of building on a regulatory standard. Every new product category that enters DPP compliance becomes queryable through DPPchain on day one.
+Supply chain inheritance — technical implementation
+As described in SPEC.md, products inherit DPP data from their input materials. This is technically implemented through UNTP's supply chain event model.
+A manufacturer declares:
+{
+  "inputProducts": [
+    {
+      "productId": "https://supplier.com/id/RAW-COTTON-00112",
+      "dppReference": "https://supplier.com/credentials/dpp-00112",
+      "quantity": "500kg"
+    },
+    {
+      "productId": "https://dye-supplier.com/id/DYE-00089",
+      "dppReference": "https://dye-supplier.com/credentials/dpp-00089",
+      "quantity": "2kg"
+    }
+  ],
+  "outputProduct": {
+    "productId": "https://manufacturer.com/id/TSHIRT-00441",
+    "dppReference": "https://manufacturer.com/credentials/dpp-00441"
+  }
+}
+Each input product reference points to a verified DPP record. The output product inherits verified data from all inputs. The chain is traceable from finished product back to raw material — every link verified, every link with legal accountability behind it.
+A small manufacturer who sources certified materials does not start from zero. They reference existing verified records. Their product inherits the verification. The technical burden is declaring what they used — not re-verifying what suppliers already verified.
+Key references
+ESPR Regulation (EU) 2024/1781
+https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1781
+UNTP Digital Product Passport Specification
+https://uncefact.github.io/spec-untp/docs/specification/DigitalProductPassport/
+GS1 Digital Product Passport Standards
+https://www.gs1.org/standards/standards-emerging-regulations/DPP
+EU Battery Regulation (EU) 2023/1542
+https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1542
+CIRPASS Project (EU Commission DPP pilot)
+https://cirpassproject.eu
+DPPchain specification is released under MIT License.
