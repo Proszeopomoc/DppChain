@@ -1,0 +1,161 @@
+# DPPchain Specification v0.1 — Simple Producer Format
+
+**We stand for free, unmanipulated data.**
+
+*This document defines DPPchain's open format for small producers. For architecture see SPEC.md. For examples see SPEC2.md. For technical standards see SPEC3.md.*
+
+---
+
+## The problem this solves
+
+UNTP and GS1 are the right standards for large manufacturers. They are already embedded in SAP, Oracle, and enterprise ERP systems. Large companies will implement DPP through their IT departments and consultants.
+
+A small farmer, a seamstress, a sawmill, a dairy, a market gardener — they do not have an IT department. They do not have a compliance budget. They do not understand JSON-LD. They are frightened of another regulatory requirement that will cost them money they do not have.
+
+At the same time, the consumer wants to know if the cotton is Polish or Chinese. If the milk is local or reconstituted. If the timber is legal. If the vegetables are what they claim to be.
+
+These two groups are cut off from each other. The small producer has a true product story but no tool to tell it in a format the system understands. The consumer wants the truth but gets marketing.
+
+DPPchain's simple producer format bridges this gap.
+
+---
+
+## Design principles
+
+**No software required**
+A producer can create a valid DPP record using a web form, a mobile app, or even a structured text file. No ERP. No IT department. No consultant.
+
+**No licence fee**
+The format is open. Free forever. No subscription. No per-product fee.
+
+**No technical knowledge required**
+The producer answers plain language questions. The system generates the structured record. They never see JSON-LD unless they want to.
+
+**Interoperable by design**
+Records created in the simple format are automatically translatable to UNTP. A small producer who starts simple can migrate to full UNTP compliance without losing any data. The simple format is a subset, not a fork.
+
+**Inheritance built in**
+If a supplier already has a DPP — in any format — the producer references it by identifier. The system handles the rest. The producer does not re-verify what their supplier already verified.
+
+---
+
+## The simple producer record
+
+A producer answers these questions. Nothing more is required to create a valid DPPchain record.
+
+**About you**
+- Your name or business name
+- Your country and region
+- Your registration number if you have one (NIP, VAT, farm registration, any official identifier)
+
+**About the product**
+- What is it? (plain language — "cow's milk", "oak timber planks", "cotton t-shirt")
+- When was it produced or harvested?
+- Where was it produced? (farm, workshop, facility — address or coordinates)
+
+**What went into it**
+- List of inputs: raw materials, components, ingredients
+- For each input: supplier name, and their DPP identifier if they have one
+- If the supplier does not have a DPP: country of origin and any certification you have for that material
+
+**What certifications do you have**
+- Any official certifications, organic status, quality marks, protected origin designations
+- Reference number and issuing body for each
+
+**That is the complete record.**
+
+A dairy farmer fills this in once per product type. Updates when something changes. The system generates a QR code they can put on the bottle. The consumer scans it and sees the full verified chain.
+
+---
+
+## What the system does automatically
+
+When a producer submits their record, DPPchain:
+
+Validates that any referenced supplier DPP identifiers actually exist in the registry. Checks that certifications reference real issuing bodies. Assigns a unique DPPchain identifier to the record. Generates a QR code and NFC-compatible link. Makes the record queryable through the DPPchain protocol. Translates the record to UNTP format for interoperability with enterprise systems.
+
+The producer does none of this. They answer questions. The system handles the rest.
+
+---
+
+## Inheritance in practice
+
+**Example: seamstress making cotton shirts**
+
+The seamstress sources fabric from a textile supplier who has a full EU DPP. She references their DPP identifier. She does not need to verify the cotton origin, the dye composition, or the REACH compliance — that is already in the supplier's record and she inherits it.
+
+What she adds: her own production location, her craftsmanship, her finishing process. Her product record is complete because it combines inherited verified data with her own declaration.
+
+**Example: dairy farmer**
+
+The farmer's cows graze on his certified land. The land has an agricultural registration number. The feed supplier has a product record. The farmer references both. He adds his own production data — herd size, milking date, processing method, pasteurisation temperature.
+
+His milk record contains: verified land origin, verified feed inputs, his own production declaration. A consumer scanning the bottle sees the complete chain from field to bottle.
+
+**Example: sawmill**
+
+The sawmill sources timber from a certified forest with FSC or PEFC certification. They reference the forest certification number. They add their own processing data — cutting date, drying method, treatment if any.
+
+A furniture maker who buys from this sawmill references the sawmill's DPP. They inherit the verified timber origin. They add their own production data. The chain grows automatically.
+
+---
+
+## What happens when a supplier has no DPP
+
+Not every supplier will have a DPP immediately. The system handles this honestly.
+
+If the supplier has no DPP, the producer declares:
+- Supplier name and country
+- Any documentation they have (invoice, certificate, delivery note)
+- Their own declaration of what they were told about the material
+
+The record is created with a "declared, unverified" status for those inputs. The consumer sees this clearly — this ingredient is declared by the producer but not independently verified through a registry.
+
+This is honest. It is better than a blank. And it creates an incentive for suppliers to get DPPs — because their customers' products will show "verified" instead of "declared" once they do.
+
+---
+
+## The consumer view
+
+When a consumer scans a QR code on a product with a DPPchain record, they see:
+
+**Verified** — data confirmed through a DPP registry with legal accountability
+**Declared** — data stated by the producer, not yet independently verified
+**Missing** — data not provided, reason stated if known
+
+No marketing language. No brand story. No promotional copy.
+
+Milk from Jan Kowalski's farm in Mazowsze, certified organic, produced 14 March 2026. Feed from certified supplier, verified. Land registration confirmed. Pasteurisation declared by producer, not independently verified.
+
+That is what the consumer gets. They decide if it is enough.
+
+---
+
+## Why this is not just another app
+
+Every existing "farm to table" or "transparent supply chain" app has the same problem — it is a closed system. The data lives inside one company's platform. The consumer can only see what that platform decides to show. The producer is locked in.
+
+DPPchain's simple format generates records that are:
+
+Owned by the producer — not by DPPchain or any platform
+Portable — exportable in UNTP format, readable by any compliant system
+Permanent — the record exists independently of DPPchain continuing to operate
+Queryable by any AI agent that implements the DPPchain protocol
+
+If DPPchain disappears tomorrow, the records still exist. The standard still exists. Another tool can read them. This is what open means.
+
+---
+
+## Implementation priority
+
+The simple producer format is the first implementation target for DPPchain.
+
+Not because large enterprises are unimportant. Because small producers are the gap that no existing system fills — and they are the ones who have the most to gain from verified transparency and the most to lose from a system that only works for companies with IT departments.
+
+When a small Polish dairy can put a QR code on their bottle that shows verified local origin, and a large brand using reconstituted milk from multiple countries cannot make the same claim — the market has honest information for the first time.
+
+That is the change DPPchain is built to enable.
+
+---
+
+*DPPchain specification is released under MIT License.*
